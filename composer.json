@@ -1,0 +1,15 @@
+{
+    "name": "karolg213/take-sha",
+    "description": "Gets sha of last commmit for provided repository and branch",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "classmap": [
+            "app/"
+        ]
+    },
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^9.1"
+    }
+}
