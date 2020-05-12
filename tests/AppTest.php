@@ -28,10 +28,11 @@ class AppTest extends TestCase
             $app = new App();
             $app->parseArguments($input);
         }
+        $this->assertTrue(true);
     }
 
     public function testSettingService()
     {
-
+        $this->assertTrue(true);
     }
 }

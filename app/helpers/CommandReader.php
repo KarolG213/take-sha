@@ -8,82 +8,71 @@
 
 namespace app\helpers;
 
-
+/**
+ * Class CommandReader
+ * Class for parsing command line arguments from $argv
+ * @package app\helpers
+ */
 class CommandReader
 {
-    private $arguments;
-    private $repository;
-    private $owner;
-    private $branch;
-    private $options;
-    const OPTIONS = [
+    const OPTIONS_ABBREVIATIONS = [
         '-s=' => '--service='
     ];                              // maybe to move to config file in the future
-
-    /**
-     * CommandReader constructor. Takes arguments array (intendet to be $argv)
-     * @param array $arguments
-     */
-    public function __construct(Array $arguments)
-    {
-        $this->arguments = $arguments;
-
-    }
 
     /**
      * Parse provided arguments to array with keys: 'options', 'owner', 'repository', 'branch'
      * @return array
      */
-    public function parseArguments()
+    public function parseArguments(Array $arguments)
     {
         $options = [];
         $parameters = [];
-        foreach ($this->arguments as $arg)
+        foreach ($arguments as $arg)
         {
-            if ($option = substr($arg, 0, 1) === '-') $options[] = $option;
-            else $parameters = $arg;
+            if (substr($arg, 0, 1) === '-') $options[] = $arg;
+            else $parameters[] = $arg;
         }
-        $this->parseOptions($options);
-        $this->parseParameters($parameters);
+        $optionsOutput = $this->parseOptions($options);
+        list($owner, $repository, $branch) = $this->parseParameters($parameters);
         return [
-            'options' => $this->options,
-            'owner' => $this->owner,
-            'repository' => $this->repository,
-            'branch' => $this->branch,
+            'options' => $optionsOutput,
+            'owner' => $owner,
+            'repository' => $repository,
+            'branch' => $branch,
         ];
     }
 
     /**
-     * Parse options to $options property ['option'=>'value']
+     * Parse options to array ['option'=>'value']
      * For now, only --service [-s] option is intended
      * @param $options
+     * @return array
      */
-    public function parseOptions($options)
+    private function parseOptions($options)
     {
         $parsed = [];
-        foreach ($options as &$option)
+        foreach ($options as $option)
         {
             // remove short options, ex: -s changed to --service
-            $option = str_replace(array_keys(OPTIONS), array_values(OPTIONS), $option);
+            $option = str_replace(array_keys(self::OPTIONS_ABBREVIATIONS), array_values(self::OPTIONS_ABBREVIATIONS), $option);
             list($key, $value) = explode("=", $option);
             $parsed[substr($key, 2)] = $value;
         }
-        $this->options = $parsed;
+        return $parsed;
     }
 
     /**
-     * Parse parameters to properties: owner, repository, branch
+     * Parse parameters to array: [owner, repository, branch]
      * @param $parameters
+     * @return array
      * @throws \Exception
      */
-    public function parseParameters($parameters)
+    private function parseParameters($parameters)
     {
         if (count($parameters) < 2) throw new \Exception('wrong_params');
         // first parameter should be in format [OWNER]/[REPOSITORY]
         preg_match('/([\w-]+)[\/]{1}([\w-]+)/', $parameters[0], $output_array);
         if (count($output_array)!==3) throw new \Exception('wrong_params');
-        $this->owner = $output_array[1];
-        $this->repository = $output_array[2];
-        $this->branch = $parameters[1];
+        return [$output_array[1], $output_array[2], $parameters[1]];
     }
 }

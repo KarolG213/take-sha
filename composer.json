@@ -5,7 +5,8 @@
     "license": "MIT",
     "autoload": {
         "classmap": [
-            "app/"
+            "app/",
+            "tests/HelperTrait.php"
         ]
     },
     "require": {},

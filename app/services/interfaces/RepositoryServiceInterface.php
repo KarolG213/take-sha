@@ -11,5 +11,8 @@ namespace app\services\interfaces;
 
 interface RepositoryServiceInterface
 {
-
+    public function fetchLastSHA():string;
+    public function setOwner(string $param):void;
+    public function setRepository(string $param):void;
+    public function setBranch(string $param):void;
 }

@@ -9,16 +9,26 @@
 namespace app;
 
 use app\helpers\CommandReader;
+use app\services\interfaces\RepositoryServiceInterface;
 
 class App {
 
     private $options;
     private $repository;
     private $branch;
-    private $service;
     const ERROR_MESSAGES = [                            // maybe should be moved to config file in the future
         'empty_argv' => 'Empty script parameters. Please use params as: [OWNER]/[REPOSITORY] [BRANCH_NAME]',
         'wrong_params' => 'Wrong parameters. Please use params as: [OWNER]/[REPOSITORY] [BRANCH_NAME]',
+        'unknown_service' => 'Unknown service. For now there is only "github" service available',
+        'service_wrong_interface' => 'Repository service must implements RepositoryServiceInterface',
+        'unknown_error' => 'Something went wrong. Try again later',
+        'github_fetch_error' => 'Github repository is unavailable. Provided parameters are wrong or repo is private.',
+        'github_empty_params' => 'Github service has empty parameters',
+
+    ];
+    const DEFAULT_SERVICE = 'github';
+    const REGISTERED_SERVICES = [
+        'github' => 'GithubService',
     ];
 
     /**
@@ -26,7 +36,7 @@ class App {
      */
     public function __construct()
     {
-        echo "Starting app....\n";
+        echo "Starting app...\n";
     }
 
     public function run(Array $arguments)
@@ -35,20 +45,38 @@ class App {
             if (count($arguments) < 3) throw new \Exception('empty_argv');
             array_shift($arguments);
             $this->parseArguments($arguments);
-            $this->setService($this->options);
+            $repositoryService = $this->setService($this->options);
+            $this->setServiceArguments($repositoryService);
+            $sha = $repositoryService->fetchLastSHA();
+            if (empty($sha)) throw new \Exception('unknown_error');
+            echo $sha;
         } catch (Exception $e) {
-            echo ERROR_MESSAGES[$e->getMessage()];
-            exit();
+            echo self::ERROR_MESSAGES[$e->getMessage()];
         }
+        exit();
     }
 
-    public function parseArguments($arguments)
+    private function parseArguments(Array $arguments)
     {
-        $arguments = (new CommandReader($arguments))->parseArguments();
+        $arguments = (new CommandReader())->parseArguments($arguments);
         $this->options = $arguments['options'];
         $this->owner = $arguments['owner'];
         $this->repository = $arguments['repository'];
         $this->branch = $arguments['branch'];
+    }
 
+    private function setService(Array $options):RepositoryServiceInterface
+    {
+        $serviceParam = strtolower($options['service'] ?? self::DEFAULT_SERVICE);
+        $registeredServices = self::REGISTERED_SERVICES;
+        if (!isset($registeredServices[$serviceParam])) throw new \Exception('unknown_service');
+        return RepositoryServiceFactory::getRepositoryService($registeredServices[$serviceParam]);
+    }
+
+    private function setServiceArguments(RepositoryServiceInterface &$repositoryService)
+    {
+        $repositoryService->setOwner($this->owner);
+        $repositoryService->setRepository($this->repository);
+        $repositoryService->setBranch($this->branch);
     }
 }
