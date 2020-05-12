@@ -9,9 +9,12 @@
 use PHPUnit\Framework\TestCase;
 
 use app\App;
+use app\services\interfaces\RepositoryServiceInterface;
 
 class AppTest extends TestCase
 {
+    use tests\HelperTrait;
+
     public function testAppClassExists()
     {
         $this->assertInstanceOf(App::class, new App([]));
@@ -26,13 +29,43 @@ class AppTest extends TestCase
 
         foreach($inputs as $input) {
             $app = new App();
-            $app->parseArguments($input);
+            $this->invokeProtectedMethod($app, 'parseArguments', [$input]);
         }
         $this->assertTrue(true);
     }
 
     public function testSettingService()
     {
-        $this->assertTrue(true);
+        $options = ['service'=>'github'];
+        $app = new App();
+        $repositoryService = $this->invokeProtectedMethod($app, 'setService', [$options]);
+        $this->assertInstanceof(RepositoryServiceInterface::class, $repositoryService);
+
+        $this->expectErrorMessage('unknown_service');
+        $options = ['service'=>'bitbucket'];
+        $app = new App();
+        $this->invokeProtectedMethod($app, 'setService', [$options]);
+    }
+
+    public function testSettingServiceArguments()
+    {
+        $repositoryService = $this->createMock(RepositoryServiceInterface::class);
+        $owner = 'owner';
+        $repository = 'repository';
+        $branch = 'branch';
+        $app = new App();
+        $this->changeProtectedProperty($app, 'owner', $owner);
+        $this->changeProtectedProperty($app, 'repository', $repository);
+        $this->changeProtectedProperty($app, 'branch', $branch);
+        $repositoryService->expects($this->once())
+            ->method('setOwner')
+            ->with($this->equalTo($owner));
+        $repositoryService->expects($this->once())
+            ->method('setRepository')
+            ->with($this->equalTo($repository));
+        $repositoryService->expects($this->once())
+            ->method('setBranch')
+            ->with($this->equalTo($branch));
+        $this->invokeProtectedMethodByReference($app, 'setServiceArguments', $repositoryService);
     }
 }

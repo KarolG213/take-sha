@@ -28,4 +28,38 @@ trait HelperTrait
 
         return $method->invokeArgs($object, $params);
     }
+
+    /**
+     * Same as method higher but call method with One parameter passed by reference
+     *
+     * @param $object
+     * @param $methodName
+     * @param $param
+     * @return mixed
+     */
+    public function invokeProtectedMethodByReference(&$object, $methodName, &$param)
+    {
+        $reflection = new \ReflectionClass(get_class($object));
+        $method = $reflection->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($object, array(&$param));
+    }
+
+    /**
+     * Change private or protected property of an object.
+     *
+     * @param object &$object    Instantiated object on which property will be changed
+     * @param string $propertyName Property name to change
+     * @param mixed  $value Value of property to set
+     *
+     * @return mixed Method return.
+     */
+    public function changeProtectedProperty(&$object, $propertyName, $value)
+    {
+        $reflection = new \ReflectionClass(get_class($object));
+        $reflectionProperty = $reflection->getProperty($propertyName);
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue($object, $value);
+    }
 }

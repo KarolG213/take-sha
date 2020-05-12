@@ -10,10 +10,12 @@ namespace app;
 
 use app\helpers\CommandReader;
 use app\services\interfaces\RepositoryServiceInterface;
+use app\RepositoryServiceFactory;
 
 class App {
 
     private $options;
+    private $owner;
     private $repository;
     private $branch;
     const ERROR_MESSAGES = [                            // maybe should be moved to config file in the future
@@ -21,6 +23,7 @@ class App {
         'wrong_params' => 'Wrong parameters. Please use params as: [OWNER]/[REPOSITORY] [BRANCH_NAME]',
         'unknown_service' => 'Unknown service. For now there is only "github" service available',
         'service_wrong_interface' => 'Repository service must implements RepositoryServiceInterface',
+        'service_not_exists' => 'Repository service class does not exists',
         'unknown_error' => 'Something went wrong. Try again later',
         'github_fetch_error' => 'Github repository is unavailable. Provided parameters are wrong or repo is private.',
         'github_empty_params' => 'Github service has empty parameters',
@@ -43,7 +46,7 @@ class App {
     {
         try {
             if (count($arguments) < 3) throw new \Exception('empty_argv');
-            array_shift($arguments);
+            array_shift($arguments);        // removes php script filename
             $this->parseArguments($arguments);
             $repositoryService = $this->setService($this->options);
             $this->setServiceArguments($repositoryService);
