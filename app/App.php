@@ -10,7 +10,6 @@ namespace app;
 
 use app\helpers\CommandReader;
 use app\services\interfaces\RepositoryServiceInterface;
-use app\RepositoryServiceFactory;
 
 class App {
 
@@ -34,14 +33,12 @@ class App {
         'github' => 'GithubService',
     ];
 
-    /**
-     * App constructor.
-     */
-    public function __construct()
-    {
-        echo "Starting app...\n";
-    }
 
+    /**
+     * App triger - as arguments takes $argv array
+     *
+     * @param array $arguments
+     */
     public function run(Array $arguments)
     {
         try {
@@ -53,12 +50,17 @@ class App {
             $sha = $repositoryService->fetchLastSHA();
             if (empty($sha)) throw new \Exception('unknown_error');
             echo $sha;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo self::ERROR_MESSAGES[$e->getMessage()];
         }
         exit();
     }
 
+    /**
+     * Parse $argv arguments (without script name) to repository service parameters and options
+     *
+     * @param array $arguments
+     */
     private function parseArguments(Array $arguments)
     {
         $arguments = (new CommandReader())->parseArguments($arguments);
@@ -68,6 +70,13 @@ class App {
         $this->branch = $arguments['branch'];
     }
 
+    /**
+     * Sets repository service
+     *
+     * @param array $options
+     * @return RepositoryServiceInterface
+     * @throws \Exception
+     */
     private function setService(Array $options):RepositoryServiceInterface
     {
         $serviceParam = strtolower($options['service'] ?? self::DEFAULT_SERVICE);
@@ -76,6 +85,11 @@ class App {
         return RepositoryServiceFactory::getRepositoryService($registeredServices[$serviceParam]);
     }
 
+    /**
+     * Sets params on repository service
+     *
+     * @param RepositoryServiceInterface $repositoryService
+     */
     private function setServiceArguments(RepositoryServiceInterface &$repositoryService)
     {
         $repositoryService->setOwner($this->owner);

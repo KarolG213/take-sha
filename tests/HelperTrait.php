@@ -62,4 +62,20 @@ trait HelperTrait
         $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($object, $value);
     }
+
+    /**
+     * Get private property of an object.
+     *
+     * @param object &$object    Instantiated object on which property will be returned
+     * @param string $propertyName Property name
+     *
+     * @return mixed Method return.
+     */
+    public function getPrivateProperty(&$object, $propertyName)
+    {
+        $reflection = new \ReflectionClass(get_class($object));
+        $reflectionProperty = $reflection->getProperty($propertyName);
+        $reflectionProperty->setAccessible(true);
+        return $reflectionProperty->getValue($object);
+    }
 }

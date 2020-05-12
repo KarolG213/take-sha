@@ -12,6 +12,13 @@ use app\services\interfaces\RepositoryServiceInterface;
 
 class RepositoryServiceFactory
 {
+    /**
+     * Creates and returns instance of invoked service which must implements RepositoryServiceInterface
+     *
+     * @param String $serviceName
+     * @return RepositoryServiceInterface
+     * @throws \Exception
+     */
     public static function getRepositoryService(String $serviceName):RepositoryServiceInterface
     {
         $className = 'app\services\\'.$serviceName;

@@ -18,7 +18,6 @@ class AppTest extends TestCase
     public function testAppClassExists()
     {
         $this->assertInstanceOf(App::class, new App([]));
-        $this->expectOutputString("Starting app...\n");
     }
 
     public function testParsingArguments()
